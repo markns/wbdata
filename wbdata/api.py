@@ -108,7 +108,7 @@ def cast_float(value):
 
 
 def get_series(indicator, country="all", data_date=None, convert_date=False,
-               column_name="value", keep_levels=False):
+               column_name="value", keep_levels=False, cached=True):
     """
     Retrieve indicators for given countries and years
 
@@ -124,7 +124,7 @@ def get_series(indicator, country="all", data_date=None, convert_date=False,
     """
     df = pd.DataFrame(
         [[i['country']['value'], i['date'], i['value']]
-         for i in get_data(indicator, country, data_date, convert_date)],
+         for i in get_data(indicator, country, data_date, convert_date, cached=cached)],
         columns=['country', 'date', column_name]
     )
     df[column_name] = df[column_name].map(cast_float)
@@ -138,7 +138,7 @@ def get_series(indicator, country="all", data_date=None, convert_date=False,
 
 
 def get_data(indicator, country="all", data_date=None, convert_date=False,
-             pandas=False, column_name="value", keep_levels=False):
+             pandas=False, column_name="value", keep_levels=False, cached=True):
     """
     Retrieve indicators for given countries and years
 
@@ -170,7 +170,7 @@ def get_data(indicator, country="all", data_date=None, convert_date=False,
             args["date"] = data_date_str
         else:
             args["date"] = data_date.strftime("%Y")
-    data = fetcher.fetch(query_url, args)
+    data = fetcher.fetch(query_url, args, cached=cached)
     if convert_date:
         data = convert_dates_to_datetime(data)
     return data
@@ -392,7 +392,7 @@ def print_ids_and_names(objs):
 
 @uses_pandas
 def get_dataframe(indicators, country="all", data_date=None,
-                  convert_date=False, keep_levels=False):
+                  convert_date=False, keep_levels=False, cached=True):
     """
     Convenience function to download a set of indicators and  merge them into a
         pandas DataFrame.  The index will be the same as if calls were made to
@@ -410,6 +410,6 @@ def get_dataframe(indicators, country="all", data_date=None,
     """
     return pd.DataFrame({
         j: get_series(i, country, data_date, convert_date,
-                      keep_levels=keep_levels)
+                      keep_levels=keep_levels, cached=cached)
         for i, j in indicators.items()
     })
